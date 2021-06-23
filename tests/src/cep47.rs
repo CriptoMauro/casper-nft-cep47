@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use casper_engine_test_support::{Code, Hash, SessionBuilder, TestContext, TestContextBuilder};
 use casper_types::{
-    account::AccountHash, bytesrepr::FromBytes, runtime_args, AsymmetricType, CLTyped, PublicKey,
-    RuntimeArgs, SecretKey, URef, U256, U512,
+    account::AccountHash, bytesrepr::FromBytes, runtime_args, AsymmetricType, CLTyped, Key,
+    PublicKey, RuntimeArgs, SecretKey, URef, U256, U512,
 };
 
 pub mod token_cfg {
@@ -26,9 +28,9 @@ pub type URI = String;
 
 impl CasperCEP47Contract {
     pub fn deploy() -> Self {
-        let admin: PublicKey = SecretKey::ed25519_from_bytes([1u8; 32]).unwrap().into();
-        let ali: PublicKey = SecretKey::ed25519_from_bytes([3u8; 32]).unwrap().into();
-        let bob: PublicKey = SecretKey::ed25519_from_bytes([5u8; 32]).unwrap().into();
+        let admin: PublicKey = (&SecretKey::ed25519_from_bytes([1u8; 32]).unwrap()).into();
+        let ali: PublicKey = (&SecretKey::ed25519_from_bytes([3u8; 32]).unwrap()).into();
+        let bob: PublicKey = (&SecretKey::ed25519_from_bytes([5u8; 32]).unwrap()).into();
         let mut context = TestContextBuilder::new()
             .with_public_key(admin.clone(), U512::from(500_000_000_000_000_000u64))
             .with_public_key(ali.clone(), U512::from(500_000_000_000_000_000u64))
@@ -72,13 +74,18 @@ impl CasperCEP47Contract {
         self.context.run(session);
     }
 
-    fn query_contract<T: CLTyped + FromBytes>(&self, name: &str) -> Option<T> {
+    fn query_contract<T: CLTyped + FromBytes + std::fmt::Debug>(&self, name: &str) -> Option<T> {
+        println!("getting {}", name);
         match self.context.query(
             self.admin.to_account_hash(),
             &[CASPERCEP47_CONTRACT.to_string(), name.to_string()],
         ) {
-            Err(_) => None,
+            Err(_) => {
+                println!("no such value");
+                None
+            }
             Ok(maybe_value) => {
+                println!("{}s value {:?}", name, maybe_value);
                 let value = maybe_value
                     .into_t()
                     .unwrap_or_else(|_| panic!("{} is not expected type.", name));
@@ -100,7 +107,7 @@ impl CasperCEP47Contract {
     }
 
     pub fn total_supply(&self) -> U256 {
-        self.query_contract("total_supply").unwrap_or_default()
+        self.query_contract("total_supply").unwrap()
     }
 
     pub fn owner_of(&self, token_id: &TokenId) -> Option<PublicKey> {
@@ -108,8 +115,15 @@ impl CasperCEP47Contract {
     }
 
     pub fn balance_of(&self, owner: PublicKey) -> U256 {
-        self.query_contract(balance_key(&owner.to_account_hash()).as_str())
-            .unwrap_or_default()
+        let balances_uref: URef = self.query_contract("balances_uref").unwrap();
+        let dict = self.context.query(
+            self.admin.to_account_hash(),
+            &[owner.to_account_hash().to_string(),balances_uref.to_string()],
+        ); //
+        println!("dict {:?}", dict);
+        self.query_contract(&balances_uref.to_string())
+            .unwrap()
+        // balances.get(balance_key(&owner.to_account_hash()).as_str())
     }
 
     pub fn tokens(&self, owner: PublicKey) -> Vec<TokenId> {

@@ -75,8 +75,8 @@ fn test_mint_many() {
 #[test]
 fn test_transfer_token() {
     let mut contract = CasperCEP47Contract::deploy();
-    let ali: PublicKey = SecretKey::ed25519_from_bytes([3u8; 32]).unwrap().into();
-    let bob: PublicKey = SecretKey::ed25519_from_bytes([5u8; 32]).unwrap().into();
+    let ali: PublicKey = (&SecretKey::ed25519_from_bytes([3u8; 32]).unwrap()).into();
+    let bob: PublicKey = (&SecretKey::ed25519_from_bytes([5u8; 32]).unwrap()).into();
     let token_uris: Vec<URI> = vec![
         URI::from("Casper Golden Card"),
         URI::from("Casper Silver Card"),
@@ -95,8 +95,8 @@ fn test_transfer_token() {
 #[test]
 fn test_transfer_many_tokens() {
     let mut contract = CasperCEP47Contract::deploy();
-    let ali: PublicKey = SecretKey::ed25519_from_bytes([3u8; 32]).unwrap().into();
-    let bob: PublicKey = SecretKey::ed25519_from_bytes([5u8; 32]).unwrap().into();
+    let ali: PublicKey = (&SecretKey::ed25519_from_bytes([3u8; 32]).unwrap()).into();
+    let bob: PublicKey = (&SecretKey::ed25519_from_bytes([5u8; 32]).unwrap()).into();
     let token_uris: Vec<URI> = vec![
         URI::from("Casper Golden Card"),
         URI::from("Casper Silver Card"),
@@ -117,8 +117,8 @@ fn test_transfer_many_tokens() {
 #[test]
 fn test_transfer_all_tokens() {
     let mut contract = CasperCEP47Contract::deploy();
-    let ali: PublicKey = SecretKey::ed25519_from_bytes([3u8; 32]).unwrap().into();
-    let bob: PublicKey = SecretKey::ed25519_from_bytes([5u8; 32]).unwrap().into();
+    let ali: PublicKey = (&SecretKey::ed25519_from_bytes([3u8; 32]).unwrap()).into();
+    let bob: PublicKey = (&SecretKey::ed25519_from_bytes([5u8; 32]).unwrap()).into();
     let token_uris: Vec<URI> = vec![
         URI::from("Casper Golden Card"),
         URI::from("Casper Silver Card"),

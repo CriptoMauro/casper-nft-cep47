@@ -5,8 +5,8 @@ authors = ["astro019 <dmitry.yakov7@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-casper-contract = "1.2.0"
-casper-types = "1.2.0"
+casper-contract = {git = "https://github.com/casper-network/casper-node", branch = "dev"}
+casper-types = {git = "https://github.com/casper-network/casper-node", branch = "dev"}
 rand = { version="0.8", default-features=false }
 
 [lib]

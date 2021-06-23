@@ -5,8 +5,8 @@ authors = ["deusz <lovaszoltanr@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-contract = { package = "casper-contract", version="1.2.0" }
-types = { package = "casper-types", version="1.2.0" }
+casper-contract = {git = "https://github.com/casper-network/casper-node", branch = "dev"}
+casper-types = {git = "https://github.com/casper-network/casper-node", branch = "dev"}
 
 [[bin]]
 name = "marketplace"
@@ -23,4 +23,4 @@ doctest = false
 test = false
 
 [features]
-default = ["contract/std", "types/std"]
+default = ["casper-contract/std", "casper-types/std"]

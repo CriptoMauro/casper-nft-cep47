@@ -3,24 +3,24 @@ use alloc::{
     collections::{BTreeMap, BTreeSet},
     string::String,
 };
-use contract::contract_api::runtime::revert;
-use contract::{
+use casper_contract::contract_api::runtime::revert;
+use casper_contract::{
     contract_api::{runtime, storage, system},
     unwrap_or_revert::UnwrapOrRevert,
 };
-use core::convert::TryInto;
-use std::{
-    collections::hash_map::DefaultHasher,
-    hash::{Hash, Hasher},
-};
-use types::bytesrepr::Error;
-use types::{
+use casper_types::bytesrepr::Error;
+use casper_types::{
     account::AccountHash,
     bytesrepr::{FromBytes, ToBytes},
     contracts::NamedKeys,
     AccessRights, ApiError, AsymmetricType, CLType, CLTyped, CLValue, ContractPackageHash,
     EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Key, Parameter, PublicKey, URef,
     U256, U512,
+};
+use core::convert::TryInto;
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
 };
 
 #[derive(Clone)]

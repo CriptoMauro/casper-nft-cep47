@@ -36,6 +36,7 @@ impl CasperCEP47Storage {
         CasperCEP47Storage {}
     }
 }
+
 impl CEP47Storage for CasperCEP47Storage {
     // Metadata.
     fn name(&self) -> String {
@@ -50,7 +51,11 @@ impl CEP47Storage for CasperCEP47Storage {
 
     // Getters
     fn balance_of(&self, owner: PublicKey) -> U256 {
-        let owner_balance = get_key::<U256>(&balance_key(&owner.to_account_hash()));
+        let owner_balance = storage::dictionary_get(
+            get_key("balances_uref").unwrap_or_revert(),
+            balance_key(&owner.to_account_hash()),
+        )
+        .unwrap_or_revert();
         if owner_balance.is_none() {
             U256::from(0)
         } else {
@@ -69,7 +74,10 @@ impl CEP47Storage for CasperCEP47Storage {
 
     // Setters
     fn get_tokens(&self, owner: PublicKey) -> Vec<TokenId> {
-        let owner_tokens = get_key::<Vec<TokenId>>(&token_key(&owner.to_account_hash()));
+        let tokens_dict = get_key("tokens_uref").unwrap_or_revert();
+        let owner_tokens =
+            storage::dictionary_get(tokens_dict, token_key(&owner.to_account_hash()))
+                .unwrap_or_revert();
         if owner_tokens.is_none() {
             Vec::<TokenId>::new()
         } else {
@@ -88,8 +96,16 @@ impl CEP47Storage for CasperCEP47Storage {
         for token_id in token_ids.clone() {
             set_key(&owner_key(&token_id), owner.clone());
         }
-        set_key(&token_key(&owner.to_account_hash()), token_ids);
-        set_key(&balance_key(&owner.to_account_hash()), owner_new_balance);
+        storage::dictionary_put(
+            get_key("tokens_uref").unwrap_or_revert(),
+            token_key(&owner.to_account_hash()),
+            token_ids,
+        );
+        storage::dictionary_put(
+            get_key("balances_uref").unwrap_or_revert(),
+            balance_key(&owner.to_account_hash()),
+            owner_new_balance,
+        );
         set_key(
             "total_supply",
             prev_total_supply - owner_prev_balance + owner_new_balance,
@@ -113,11 +129,16 @@ impl CEP47Storage for CasperCEP47Storage {
             set_key(&owner_key(&token_id), recipient.clone());
         }
         recipient_balance = recipient_balance + U256::from(token_uris.len() as u64);
-        set_key(
-            &balance_key(&recipient.to_account_hash()),
+        storage::dictionary_put(
+            get_key("tokens_uref").unwrap_or_revert(),
+            token_key(&recipient.to_account_hash()),
+            recipient_tokens,
+        );
+        storage::dictionary_put(
+            get_key("balances_uref").unwrap_or_revert(),
+            balance_key(&recipient.to_account_hash()),
             recipient_balance,
         );
-        set_key(&token_key(&recipient.to_account_hash()), recipient_tokens);
         set_key("total_supply", total_supply);
     }
     fn mint_copies(&mut self, recipient: PublicKey, token_uri: URI, count: U256) {
@@ -319,6 +340,18 @@ pub extern "C" fn detach() {
     set_key(&test_uref_key(&token_id), res);
 }
 
+#[no_mangle]
+pub extern "C" fn init() {
+    set_key(
+        "tokens_uref",
+        storage::new_dictionary("tokens").unwrap_or_revert(),
+    );
+    set_key(
+        "balances_uref",
+        storage::new_dictionary("balances").unwrap_or_revert(),
+    );
+}
+
 pub fn get_entrypoints(package_hash: Option<ContractPackageHash>) -> EntryPoints {
     let secure = if let Some(contract_package_hash) = package_hash {
         let deployer_group = storage::create_contract_user_group(
@@ -335,6 +368,7 @@ pub fn get_entrypoints(package_hash: Option<ContractPackageHash>) -> EntryPoints
     };
 
     let mut entry_points = EntryPoints::new();
+    entry_points.add_entry_point(endpoint("init", vec![], CLType::Unit, None));
     entry_points.add_entry_point(endpoint("name", vec![], CLType::String, None));
     entry_points.add_entry_point(endpoint("symbol", vec![], CLType::String, None));
     entry_points.add_entry_point(endpoint("uri", vec![], CLType::String, None));
@@ -480,6 +514,7 @@ pub fn deploy(
     runtime::put_key("caspercep47_contract", contract_hash.into());
     let contract_hash_pack = storage::new_uref(contract_hash);
     runtime::put_key("caspercep47_contract_hash", contract_hash_pack.into());
+    runtime::call_versioned_contract::<()>(contract_package_hash, None, "init", Default::default());
 }
 
 fn get_key<T: FromBytes + CLTyped>(name: &str) -> Option<T> {

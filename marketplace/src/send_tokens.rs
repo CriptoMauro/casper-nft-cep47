@@ -1,7 +1,7 @@
 #![no_main]
 
-use contract::contract_api::{account, runtime, system};
-use types::{runtime_args, ContractHash, PublicKey, RuntimeArgs, U512};
+use casper_contract::contract_api::{account, runtime, system};
+use casper_types::{runtime_args, ContractHash, PublicKey, RuntimeArgs, U512};
 
 #[no_mangle]
 pub extern "C" fn call() {
