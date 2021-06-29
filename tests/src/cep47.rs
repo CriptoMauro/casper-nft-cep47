@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use casper_engine_test_support::{Code, Hash, SessionBuilder, TestContext, TestContextBuilder};
 use casper_types::{
     account::AccountHash, bytesrepr::FromBytes, runtime_args, AsymmetricType, CLTyped, PublicKey,
@@ -8,6 +10,29 @@ pub mod token_cfg {
     pub const NAME: &str = "CasperNFT";
     pub const SYMBOL: &str = "CNFT";
     pub const URI: &str = "https://casper.network/network";
+    pub const LICENSE: &str = r#"MIT License
+
+    Copyright (c) 2021 Casper Ecosystem
+    
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+    
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+    
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE."#;
+
+    pub const LOREM_IPSUM: &str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 }
 
 pub const CASPERCEP47_CONTRACT: &str = "caspercep47_contract";
@@ -35,10 +60,16 @@ impl CasperCEP47Contract {
             .with_public_key(bob.clone(), U512::from(500_000_000_000_000_000u64))
             .build();
         let session_code = Code::from("dragons-nft.wasm");
+        let meta: BTreeMap<String, String> = {
+            let mut btree: BTreeMap<String, String> = BTreeMap::new();
+            btree.insert("license".into(), token_cfg::LICENSE.into());
+            btree
+        };
         let session_args = runtime_args! {
             "token_name" => token_cfg::NAME,
             "token_symbol" => token_cfg::SYMBOL,
-            "token_uri" => token_cfg::URI
+            "token_uri" => token_cfg::URI,
+            "token_meta" => meta
         };
         let session = SessionBuilder::new(session_code, session_args)
             .with_address(admin.to_account_hash())
@@ -99,6 +130,10 @@ impl CasperCEP47Contract {
         self.query_contract("uri").unwrap()
     }
 
+    pub fn meta(&self) -> BTreeMap<String, String> {
+        self.query_contract("meta").unwrap()
+    }
+
     pub fn total_supply(&self) -> U256 {
         self.query_contract("total_supply").unwrap_or_default()
     }
@@ -123,6 +158,15 @@ impl CasperCEP47Contract {
 
     pub fn token_uref(&self, token_id: &TokenId) -> Option<URef> {
         self.query_contract(test_uref_key(&token_id).as_str())
+    }
+
+    pub fn set_meta(&mut self, new_meta: BTreeMap<String, String>) {
+        self.call(
+            "set_meta",
+            runtime_args! {
+                "new_meta" => new_meta,
+            },
+        );
     }
 
     pub fn mint_one(&mut self, recipient: PublicKey, token_uri: URI) {

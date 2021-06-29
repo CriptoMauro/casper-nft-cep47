@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::cep47::{token_cfg, CasperCEP47Contract, TokenId, URI};
 use casper_types::{AsymmetricType, PublicKey, SecretKey, U256};
 
@@ -22,6 +24,30 @@ fn test_token_uri() {
     let ali_token_uri = contract.token_uri(ali_tokens[0].clone());
 
     assert_eq!(ali_token_uri, Some(token_uri));
+}
+
+#[test]
+fn test_token_meta() {
+    let mut contract = CasperCEP47Contract::deploy();
+    let meta = contract.meta();
+    let license_meta = meta.get("license").unwrap();
+    if license_meta.is_empty() {
+        unreachable!();
+    }
+    assert_eq!(license_meta, token_cfg::LICENSE);
+    let lorem_ipsum = meta.get("lorem_ipsum");
+    assert!(lorem_ipsum.is_none());
+    contract.set_meta({
+        let mut new_meta = BTreeMap::new();
+        new_meta.insert(
+            "lorem_ipsum".to_string(),
+            token_cfg::LOREM_IPSUM.to_string(),
+        );
+        new_meta
+    });
+    let extended_meta = contract.meta();
+    let lorem_ipsum_meta = extended_meta.get("lorem_ipsum").unwrap();
+    assert_eq!(lorem_ipsum_meta, token_cfg::LOREM_IPSUM);
 }
 
 #[test]

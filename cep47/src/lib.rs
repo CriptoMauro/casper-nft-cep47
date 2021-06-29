@@ -47,6 +47,17 @@ impl CEP47Storage for CasperCEP47Storage {
     fn uri(&self) -> URI {
         get_key::<URI>("uri").unwrap()
     }
+    fn meta(&self) -> BTreeMap<String, String> {
+        get_key::<BTreeMap<String, String>>("meta").unwrap()
+    }
+
+    fn set_meta(&mut self, new_meta: BTreeMap<String, String>) {
+        let mut meta = get_key::<BTreeMap<String, String>>("meta").unwrap();
+        for (key, value) in new_meta {
+            meta.insert(key, value);
+        }
+        set_key("meta", meta)
+    }
 
     // Getters
     fn balance_of(&self, owner: PublicKey) -> U256 {
@@ -202,6 +213,21 @@ pub extern "C" fn uri() {
     ret(contract.uri())
 }
 
+#[cfg(not(feature = "no_meta"))]
+#[no_mangle]
+pub extern "C" fn meta() {
+    let contract = CasperCEP47Contract::new();
+    ret(contract.meta())
+}
+
+#[cfg(not(feature = "no_meta"))]
+#[no_mangle]
+pub extern "C" fn set_meta() {
+    let new_meta: BTreeMap<String, String> = runtime::get_named_arg("new_meta");
+    let mut contract = CasperCEP47Contract::new();
+    contract.set_meta(new_meta)
+}
+
 #[cfg(not(feature = "no_balance_of"))]
 #[no_mangle]
 pub extern "C" fn balance_of() {
@@ -338,6 +364,27 @@ pub fn get_entrypoints(package_hash: Option<ContractPackageHash>) -> EntryPoints
     entry_points.add_entry_point(endpoint("name", vec![], CLType::String, None));
     entry_points.add_entry_point(endpoint("symbol", vec![], CLType::String, None));
     entry_points.add_entry_point(endpoint("uri", vec![], CLType::String, None));
+    entry_points.add_entry_point(endpoint(
+        "meta",
+        vec![],
+        CLType::Map {
+            key: Box::new(CLType::String),
+            value: Box::new(CLType::String),
+        },
+        None,
+    ));
+    entry_points.add_entry_point(endpoint(
+        "set_meta",
+        vec![Parameter::new(
+            "new_meta",
+            CLType::Map {
+                key: Box::new(CLType::String),
+                value: Box::new(CLType::String),
+            },
+        )],
+        CLType::Unit,
+        None,
+    ));
     entry_points.add_entry_point(endpoint("total_supply", vec![], CLType::U256, None));
     entry_points.add_entry_point(endpoint(
         "balance_of",
@@ -463,6 +510,7 @@ pub fn deploy(
     token_name: &str,
     token_symbol: &str,
     token_uri: &str,
+    token_meta: BTreeMap<String, String>,
     entry_points: EntryPoints,
     contract_package_hash: ContractPackageHash,
 ) {
@@ -470,6 +518,7 @@ pub fn deploy(
     named_keys.insert("name".to_string(), storage::new_uref(token_name).into());
     named_keys.insert("symbol".to_string(), storage::new_uref(token_symbol).into());
     named_keys.insert("uri".to_string(), storage::new_uref(token_uri).into());
+    named_keys.insert("meta".to_string(), storage::new_uref(token_meta).into());
     named_keys.insert(
         "total_supply".to_string(),
         storage::new_uref(U256::zero()).into(),

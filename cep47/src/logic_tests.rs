@@ -17,6 +17,7 @@ mod tests {
         name: String,
         symbol: String,
         uri: URI,
+        meta: BTreeMap<String, String>,
         total_supply: U256,
         tokens: BTreeMap<PublicKey, Vec<TokenId>>,
         token_uris: BTreeMap<TokenId, URI>,
@@ -31,6 +32,16 @@ mod tests {
                 name: String::from("Casper Enhancement Proposal 47"),
                 symbol: String::from("CEP47"),
                 uri: URI::from("https://github.com/casper-ecosystem/casper-nft-cep47"),
+                meta: {
+                    let mut btree: BTreeMap<String, String> = BTreeMap::new();
+                    btree.insert("name".into(), "Casper Enhancement Proposal 47".into());
+                    btree.insert("symbol".into(), "CEP47".into());
+                    btree.insert(
+                        "uri".into(),
+                        "https://github.com/casper-ecosystem/casper-nft-cep47".into(),
+                    );
+                    btree
+                },
                 total_supply: U256::from(0),
                 tokens: BTreeMap::new(),
                 balances: BTreeMap::new(),
@@ -52,6 +63,16 @@ mod tests {
 
         fn uri(&self) -> URI {
             self.uri.clone()
+        }
+
+        fn meta(&self) -> BTreeMap<String, String> {
+            self.meta.clone()
+        }
+
+        fn set_meta(&mut self, new_meta: BTreeMap<String, String>) {
+            for (key, value) in new_meta {
+                self.meta.insert(key, value);
+            }
         }
 
         fn balance_of(&self, owner: PublicKey) -> U256 {

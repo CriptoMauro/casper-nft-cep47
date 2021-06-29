@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
+use std::{collections::BTreeMap, string};
+
 use casper_types::{ApiError, AsymmetricType, PublicKey, URef, U256};
 
 pub type TokenId = String;
@@ -33,6 +35,14 @@ pub trait CEP47Contract<Storage: CEP47Storage>: WithStorage<Storage> {
 
     fn uri(&self) -> URI {
         self.storage().uri()
+    }
+
+    fn meta(&self) -> BTreeMap<String, String> {
+        self.storage().meta()
+    }
+
+    fn set_meta(&mut self, new_meta: BTreeMap<String, String>) {
+        self.storage_mut().set_meta(new_meta)
     }
 
     // Getters
@@ -153,6 +163,8 @@ pub trait CEP47Storage {
     fn name(&self) -> String;
     fn symbol(&self) -> String;
     fn uri(&self) -> URI;
+    fn meta(&self) -> BTreeMap<String, String>;
+    fn set_meta(&mut self, new_meta: BTreeMap<String, String>);
 
     // Getters
     fn balance_of(&self, owner: PublicKey) -> U256;
