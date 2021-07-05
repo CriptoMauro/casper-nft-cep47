@@ -1,9 +1,9 @@
 prepare:
-	rustup target add wasm32-unknown-unknown
+	rustup +nightly target add wasm32-unknown-unknown
 
 build-contract:
-	cargo build --release -p dragons-nft --target wasm32-unknown-unknown
-	cargo build --release -p marketplace --target wasm32-unknown-unknown
+	cargo +nightly build --release -p dragons-nft --target wasm32-unknown-unknown
+	cargo +nightly build --release -p marketplace --target wasm32-unknown-unknown
 
 test-only:
 	cargo test --workspace
