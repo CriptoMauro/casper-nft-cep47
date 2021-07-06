@@ -19,6 +19,6 @@
     "typescript": "^3.3.3"
   },
   "dependencies": {
-    "casper-js-sdk": "^2.0.1"
+    "casper-js-sdk": "../../casper-js-sdk"
   }
 }

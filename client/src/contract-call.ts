@@ -1,4 +1,5 @@
 import { CasperClient, DeployUtil, Keys, RuntimeArgs } from "casper-js-sdk";
+import * as utils from "./utils";
 
 interface IContractCallParams {
   nodeAddress: string;
@@ -26,9 +27,7 @@ const contractCall = async ({
   runtimeArgs,
 }: IContractCallParams) => {
   const client = new CasperClient(nodeAddress);
-  const contractHashAsByteArray = Uint8Array.from(
-    Buffer.from(contractHash.slice(5), "hex")
-  );
+  const contractHashAsByteArray =  utils.contractHashToByteArray(contractHash);
 
   let deploy = DeployUtil.makeDeploy(
     new DeployUtil.DeployParams(

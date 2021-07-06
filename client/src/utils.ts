@@ -29,7 +29,7 @@ export const getStateRootHash = async (nodeAddress: string) => {
   const client = new CasperServiceByJsonRPC(nodeAddress);
   const { block } = await client.getLatestBlockInfo();
   if (block) {
-    return block.header.state_root_hash
+    return block.header.state_root_hash;
   } else {
     throw Error("Problem when calling getLatestBlockInfo");
   }
@@ -51,9 +51,32 @@ export const getAccountInfo = async (
  * @param accountInfo - On-chain account's info.
  * @param namedKey - A named key associated with an on-chain account.
  */
- export const getAccountNamedKeyValue = (accountInfo: any, namedKey: string) => {
-    const found = accountInfo.namedKeys.find((i: any) => i.name === namedKey);
-    if (found) {
-      return found.key;
-    }
+export const getAccountNamedKeyValue = (accountInfo: any, namedKey: string) => {
+  const found = accountInfo.namedKeys.find((i: any) => i.name === namedKey);
+  if (found) {
+    return found.key;
+  }
 };
+
+export const getContractData = async (
+  nodeAddress: string,
+  stateRootHash: string,
+  contractHash: string,
+  path: string[] = []
+) => {
+  const client = new CasperServiceByJsonRPC(nodeAddress);
+  const blockState = await client.getBlockState(
+    stateRootHash,
+    contractHash,
+    path
+  );
+  return blockState;
+};
+
+export const contractHashToByteArray = (contractHash: string) =>
+  Uint8Array.from(Buffer.from(contractHash.slice(5), "hex"));
+
+
+export const sleep = (num: number) => {
+  return new Promise(resolve => setTimeout(resolve, num));
+}
