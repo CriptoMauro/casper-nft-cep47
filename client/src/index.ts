@@ -39,8 +39,9 @@ const run = async () => {
   );
 
   const runtimeArgs = RuntimeArgs.fromMap({
-    recepient: CLPublicKey.fromHex('0104dc5a6af3612e3de9045fb7c2624b3ab9c2333434c0a6a228014747d0fa5203'),
-    token_uri: CLValueBuilder.string('blabla'),
+    // recipient: operatorKeyPair.publicKey, 
+    recipient: CLPublicKey.fromHex('0104dc5a6af3612e3de9045fb7c2624b3ab9c2333434c0a6a228014747d0fa5203'),
+    token_uri: CLValueBuilder.string(constants.TOKEN_URI),
   });
 
   // recepientAddress: "0202409d7f6fc78f214120b05f559033be915aadd1da2a423fd08540b7d3ced2cb0c",
