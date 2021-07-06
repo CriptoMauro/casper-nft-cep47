@@ -1,50 +1,57 @@
 import {
   CasperClient,
-  CLValueBuilder,
   DeployUtil,
+  Keys,
   RuntimeArgs,
 } from "casper-js-sdk";
 import * as constants from "./constants";
 import * as utils from "./utils";
 
-/**
- * Demonstration entry point.
- */
-const install = async () => {
-  // Step 1: Set casper node client.
-  const client = new CasperClient(constants.NODE_ADDRESS);
+interface IInstallParams {
+  nodeAddress: string;
+  operatorKeyPair: Keys.AsymmetricKey;
+  chainName: string,
+  gasPrice: number,
+  ttl: number,
+  pathToContract: string,
+  runtimeArgs: RuntimeArgs,
+  gasPayment: number,
+}
 
-  // Step 2: Set contract operator key pair.
-  const keyPairOfContract = utils.getKeyPairOfContract(
-    constants.PATH_TO_FAUCET_ACCOUNT
-  );
+const install = async ({
+  nodeAddress,
+  operatorKeyPair,
+  chainName,
+  gasPayment,
+  gasPrice,
+  ttl,
+  pathToContract,
+  runtimeArgs,
+}: IInstallParams) => {
+  const client = new CasperClient(nodeAddress);
 
-  // Step 3: Set contract installation deploy (unsigned).
+  // Set contract installation deploy (unsigned).
   let deploy = DeployUtil.makeDeploy(
     new DeployUtil.DeployParams(
-      keyPairOfContract.publicKey,
-      constants.DEPLOY_CHAIN_NAME,
-      constants.DEPLOY_GAS_PRICE,
-      constants.DEPLOY_TTL_MS
+      operatorKeyPair.publicKey,
+      chainName,
+      gasPrice,
+      ttl
     ),
     DeployUtil.ExecutableDeployItem.newModuleBytes(
-      utils.getBinary(constants.PATH_TO_MARKETPLACE_CONTRACT),
-      RuntimeArgs.fromMap({
-          token_name: CLValueBuilder.string(constants.TOKEN_NAME),
-          token_symbol: CLValueBuilder.string(constants.TOKEN_SYMBOL),
-          token_uri: CLValueBuilder.string(constants.TOKEN_URI),
-      })
+      utils.getBinary(pathToContract),
+      runtimeArgs
     ),
-    DeployUtil.standardPayment(constants.DEPLOY_GAS_PAYMENT)
+    DeployUtil.standardPayment(gasPayment)
   );
 
-  // Step 4: Sign deploy.
-  deploy = client.signDeploy(deploy, keyPairOfContract);
+  // Sign deploy.
+  deploy = client.signDeploy(deploy, operatorKeyPair);
 
-  // Step 5: Dispatch deploy to node.
+  // Dispatch deploy to node.
   const deployHash = await client.putDeploy(deploy);
 
-  // Step 6: Render deploy details.
+  // Render deploy details.
   logDetails(deployHash);
 };
 
@@ -63,7 +70,7 @@ installed contract -> CEP47
 ... deploy gas price = ${constants.DEPLOY_GAS_PRICE}
 contract constructor args:
 contract installation details:
-... path = ${constants.PATH_TO_MARKETPLACE_CONTRACT}
+... path = ${constants.PATH_TO_CONTRACT}
 ... deploy hash = ${deployHash}
 ---------------------------------------------------------------------
     `);
