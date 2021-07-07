@@ -37,9 +37,9 @@ export const getStateRootHash = async (nodeAddress: string) => {
 
 export const getAccountInfo = async (
   nodeAddress: string,
-  stateRootHash: string,
   publicKey: CLPublicKey
 ) => {
+  let stateRootHash = await getStateRootHash(nodeAddress);
   const client = new CasperServiceByJsonRPC(nodeAddress);
   const accountHash = publicKey.toAccountHashStr();
   const blockState = await client.getBlockState(stateRootHash, accountHash, []);
@@ -67,14 +67,14 @@ export const getContractData = async (
   const client = new CasperServiceByJsonRPC(nodeAddress);
   const blockState = await client.getBlockState(
     stateRootHash,
-    contractHash,
+    `hash-${contractHash}`,
     path
   );
   return blockState;
 };
 
 export const contractHashToByteArray = (contractHash: string) =>
-  Uint8Array.from(Buffer.from(contractHash.slice(5), "hex"));
+  Uint8Array.from(Buffer.from(contractHash, "hex"));
 
 
 export const sleep = (num: number) => {
