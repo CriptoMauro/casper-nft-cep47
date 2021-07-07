@@ -6,7 +6,7 @@ import * as utils from "./utils";
 
 const CEP47_CONTRACT_NAME = "caspercep47_contract";
 
-class Cep47 {
+class CEP47Client {
   private contractHash: string;
 
   constructor(
@@ -101,4 +101,4 @@ class Cep47 {
   }
 }
 
-export default Cep47;
+export default CEP47Client;
