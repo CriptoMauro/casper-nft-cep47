@@ -1,8 +1,8 @@
 prepare:
-	rustup target add wasm32-unknown-unknown
+	rustup +nightly target add wasm32-unknown-unknown
 
 build-contract:
-	cargo build --release -p dragons-nft --target wasm32-unknown-unknown
+	cargo +nightly build --release -p dragons-nft --target wasm32-unknown-unknown
 
 test-only:
 	cargo test -p cep47-logic
