@@ -2,10 +2,13 @@ const { Keys } = require("casper-js-sdk");
 const { CEP47Client, utils } = require("cep47-ts-client");
 
 const NODE_ADDRESS = 'http://3.143.158.19:7777/rpc';
+// const NODE_ADDRESS = 'http://localhost:40101/rpc';
 const INSTALL_PAYMENT_AMOUNT = '200000000000';
 const MINT_ONE_PAYMENT_AMOUNT = '2000000000';
 const MINT_COPIES_PAYMENT_AMOUNT = '100000000000';
+const BURN_ONE_PAYMENT_AMOUNT = '2000000000';
 const CHAIN_NAME = 'integration-test';
+// const CHAIN_NAME = 'casper-net-1';
 const WASM_PATH = "./../target/wasm32-unknown-unknown/release/dragons-nft.wasm";
 const TOKEN_NAME = 'DragonsNFT';
 const TOKEN_SYMBOL = 'DRAG';
@@ -50,6 +53,15 @@ const mintCopies = async () => {
     console.log(`... DeployHash: ${deployHash}`);
 }
 
+const burnOne = async () => {
+    const cep47 = new CEP47Client(NODE_ADDRESS, CHAIN_NAME);
+    cep47.setContractHash(CONTRACT_HASH);
+    let meta = randomMeta(MINT_ONE_META_SIZE);
+    const deployHash = await cep47.burnOne(KEYS, KEYS.publicKey, '1111', BURN_ONE_PAYMENT_AMOUNT);
+    console.log(`Mint One`);
+    console.log(`... DeployHash: ${deployHash}`);
+}
+
 const totalSupply = async () => {
     const cep47 = new CEP47Client(NODE_ADDRESS, CHAIN_NAME);
     cep47.setContractHash(CONTRACT_HASH);
@@ -81,6 +93,9 @@ switch (command) {
         break;
     case 'mint_copies':
         mintCopies();
+        break;
+    case 'burn_one':
+        burnOne();
         break;
     case 'total_supply':
         totalSupply();

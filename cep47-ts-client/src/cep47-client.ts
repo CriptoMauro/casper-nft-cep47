@@ -112,6 +112,34 @@ class CEP47Client {
       throw Error('Invalid Deploy');
     }
   }
+
+  public async burnOne(
+    keys: Keys.AsymmetricKey, 
+    owner: CLPublicKey,
+    tokenId: string,
+    paymentAmount: string
+  ) {
+    const runtimeArgs = RuntimeArgs.fromMap({
+      owner,
+      tokenId: CLValueBuilder.string(tokenId),
+    });
+
+    const deployHash = await contractCall({
+      chainName: this.chainName,
+      contractHash: this.contractHash,
+      entryPoint: "burn_one",
+      keys,
+      nodeAddress: this.nodeAddress,
+      paymentAmount,
+      runtimeArgs,
+    });
+
+    if (deployHash !== null) {
+      return deployHash;
+    } else {
+      throw Error('Invalid Deploy');
+    }
+  }
 }
 
 
