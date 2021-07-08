@@ -9,6 +9,7 @@
     "mint_copies": "node src/index.js mint_copies",
     "total_supply": "node src/index.js total_supply",
     "print_account": "node src/index.js print_account",
+    "balance_of": "node src/index.js balance_of",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

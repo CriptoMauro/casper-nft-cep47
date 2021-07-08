@@ -21,7 +21,7 @@ const KEYS = Keys.Ed25519.parseKeyFiles(
     `${KEY_PAIR_PATH}/public_key.pem`,
     `${KEY_PAIR_PATH}/secret_key.pem`
 );
-const MINT_ONE_META_SIZE = 45;
+const MINT_ONE_META_SIZE = 3;
 const MINT_COPIES_META_SIZE = 10;
 const MINT_COPIES_COUNT = 100;
 const CONTRACT_HASH = 'ff1a2378a8c8e3b764417f44eaea2a4397699460d9cc5b6986a3099b3293f2ba';
@@ -56,7 +56,6 @@ const mintCopies = async () => {
 const burnOne = async () => {
     const cep47 = new CEP47Client(NODE_ADDRESS, CHAIN_NAME);
     cep47.setContractHash(CONTRACT_HASH);
-    let meta = randomMeta(MINT_ONE_META_SIZE);
     const deployHash = await cep47.burnOne(KEYS, KEYS.publicKey, '1111', BURN_ONE_PAYMENT_AMOUNT);
     console.log(`Mint One`);
     console.log(`... DeployHash: ${deployHash}`);
@@ -67,6 +66,13 @@ const totalSupply = async () => {
     cep47.setContractHash(CONTRACT_HASH);
     const totalSupply = await cep47.totalSupply();
     console.log(`Total Supply: ${totalSupply}`);
+}
+
+const balanceOf = async () => {
+    const cep47 = new CEP47Client(NODE_ADDRESS, CHAIN_NAME);
+    cep47.setContractHash(CONTRACT_HASH);
+    const balance = await cep47.balanceOf(KEYS.publicKey);
+    console.log(`Balance: ${balance}`);
 }
 
 const printAccount = async () => {
@@ -99,6 +105,9 @@ switch (command) {
         break;
     case 'total_supply':
         totalSupply();
+        break;
+    case 'balance_of':
+        balanceOf();
         break;
     case 'print_account':
         printAccount();
