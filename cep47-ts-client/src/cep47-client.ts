@@ -55,6 +55,34 @@ class CEP47Client {
     }
   }
 
+  public async balanceOf(account: CLPublicKey) {
+    const stateRootHash = await utils.getStateRootHash(this.nodeAddress);
+    let key = `balances_${Buffer.from(account.toAccountHash()).toString('hex')}`;
+    console.log(key);
+    const clValue = await utils.getContractData(
+      this.nodeAddress, stateRootHash, this.contractHash, [key]);
+
+    if (clValue && clValue.CLValue instanceof CLValue) {
+      return clValue.CLValue!.value().toString()
+    } else {
+      throw Error('Invalid stored value');
+    }
+  }
+
+  public async tokensOf(account: CLPublicKey) {
+    const stateRootHash = await utils.getStateRootHash(this.nodeAddress);
+    let key = `balances_${Buffer.from(account.toAccountHash()).toString('hex')}`;
+    console.log(key);
+    const clValue = await utils.getContractData(
+      this.nodeAddress, stateRootHash, this.contractHash, [key]);
+
+    if (clValue && clValue.CLValue instanceof CLValue) {
+      return clValue.CLValue!.value().toString()
+    } else {
+      throw Error('Invalid stored value');
+    }
+  }
+
   public async mintOne(
     keys: Keys.AsymmetricKey, 
     recipient: CLPublicKey, 
