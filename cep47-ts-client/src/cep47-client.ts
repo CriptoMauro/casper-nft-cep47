@@ -1,4 +1,4 @@
-import { CasperClient, DeployUtil, Keys, RuntimeArgs, CLValueBuilder, CLValue, CLPublicKey, CLTypeBuilder } from "casper-js-sdk";
+import { CasperClient, DeployUtil, Keys, RuntimeArgs, CLValueBuilder, CLValue, CLPublicKey, CLString, CLTypeBuilder } from "casper-js-sdk";
 import * as utils from "./utils";
 
 class CEP47Client {
@@ -15,7 +15,7 @@ class CEP47Client {
     tokenSymbol: string,
     tokenMeta: Map<string, string>,
     paymentAmount: string,
-    wasm_path: string
+    wasmPath: string
   ) {
     const runtimeArgs = RuntimeArgs.fromMap({
       token_name: CLValueBuilder.string(tokenName),
@@ -25,10 +25,10 @@ class CEP47Client {
 
     const deployHash = await installWasmFile({
       chainName: this.chainName,
-      paymentAmount: paymentAmount,
+      paymentAmount,
       nodeAddress: this.nodeAddress,
-      keys: keys,
-      pathToContract: wasm_path,
+      keys,
+      pathToContract: wasmPath,
       runtimeArgs
     });
 
@@ -43,45 +43,102 @@ class CEP47Client {
     this.contractHash = hash;
   }
 
-  public async totalSupply() {
-    const stateRootHash = await utils.getStateRootHash(this.nodeAddress);
-    const clValue = await utils.getContractData(
-      this.nodeAddress, stateRootHash, this.contractHash, ["total_supply"]);
+  public async name(account: CLPublicKey) {
+    const result = await contractSimpleGetter(this.nodeAddress, this.contractHash, ["name"]);
+    return result.value();
+  }
 
-    if (clValue && clValue.CLValue instanceof CLValue) {
-      return clValue.CLValue!.value().toString()
-    } else {
-      throw Error('Invalid stored value');
-    }
+  public async symbol(account: CLPublicKey) {
+    const result = await contractSimpleGetter(this.nodeAddress, this.contractHash, ["symbol"]);
+    return result.value();
+  }
+
+  public async meta(account: CLPublicKey) {
+    const result = await contractSimpleGetter(this.nodeAddress, this.contractHash, ["meta"]);
+    return result.value()
   }
 
   public async balanceOf(account: CLPublicKey) {
-    const stateRootHash = await utils.getStateRootHash(this.nodeAddress);
-    let key = `balances_${Buffer.from(account.toAccountHash()).toString('hex')}`;
-    console.log(key);
-    const clValue = await utils.getContractData(
-      this.nodeAddress, stateRootHash, this.contractHash, [key]);
+    const key = `balances_${Buffer.from(account.toAccountHash()).toString('hex')}`;
+    const result = await contractSimpleGetter(this.nodeAddress, this.contractHash, [key]);
+    return fromCLMap(result.value());
+  }
 
-    if (clValue && clValue.CLValue instanceof CLValue) {
-      return clValue.CLValue!.value().toString()
+  public async getOwnerOf(tokenId: string) {
+    const key = `owners_${tokenId}`;
+    const result = await contractSimpleGetter(this.nodeAddress, this.contractHash, [key]);
+    return (result as CLPublicKey).toHex();
+  }
+
+  public async totalSupply() {
+    const result = await contractSimpleGetter(this.nodeAddress, this.contractHash, ['total_supply']);
+    return result.value().toString();
+  }
+
+  public async getTokenMeta(tokenId: string) {
+    const key = `metas_${tokenId}`;
+    const result = await contractSimpleGetter(this.nodeAddress, this.contractHash, [key]);
+    return fromCLMap(result.value())
+  }
+
+  public async pause(
+    keys: Keys.AsymmetricKey, 
+    paymentAmount: string
+  ) {
+    const runtimeArgs = RuntimeArgs.fromMap({});
+
+    const deployHash = await contractCall({
+      chainName: this.chainName,
+      contractHash: this.contractHash,
+      entryPoint: "pause",
+      paymentAmount,
+      nodeAddress: this.nodeAddress,
+      keys: keys,
+      runtimeArgs,
+    });
+
+    if (deployHash !== null) {
+      return deployHash;
     } else {
-      throw Error('Invalid stored value');
+      throw Error('Invalid Deploy');
     }
   }
 
-  public async tokensOf(account: CLPublicKey) {
-    const stateRootHash = await utils.getStateRootHash(this.nodeAddress);
-    let key = `balances_${Buffer.from(account.toAccountHash()).toString('hex')}`;
-    console.log(key);
-    const clValue = await utils.getContractData(
-      this.nodeAddress, stateRootHash, this.contractHash, [key]);
+  public async unpause(
+    keys: Keys.AsymmetricKey, 
+    paymentAmount: string
+  ) {
+    const runtimeArgs = RuntimeArgs.fromMap({});
 
-    if (clValue && clValue.CLValue instanceof CLValue) {
-      return clValue.CLValue!.value().toString()
+    const deployHash = await contractCall({
+      chainName: this.chainName,
+      contractHash: this.contractHash,
+      entryPoint: "unpause",
+      paymentAmount,
+      nodeAddress: this.nodeAddress,
+      keys: keys,
+      runtimeArgs,
+    });
+
+    if (deployHash !== null) {
+      return deployHash;
     } else {
-      throw Error('Invalid stored value');
+      throw Error('Invalid Deploy');
     }
   }
+
+  // Error: state query failed: ValueNotFound
+  public async isPaused() {
+    const result = await contractSimpleGetter(this.nodeAddress, this.contractHash, ['is_paused']);
+    return result.value();
+  }
+
+  public async getTokensOf(account: CLPublicKey) {
+    const key = `tokens_${Buffer.from(account.toAccountHash()).toString('hex')}`;
+    const result = await contractSimpleGetter(this.nodeAddress, this.contractHash, [key]);
+    return result.value();
+  }
+
 
   public async mintOne(
     keys: Keys.AsymmetricKey, 
@@ -141,6 +198,35 @@ class CEP47Client {
     }
   }
 
+  public async mintMany(
+    keys: Keys.AsymmetricKey, 
+    recipient: CLPublicKey, 
+    meta: Array<Map<string, string>>,
+    paymentAmount: string
+  ) {
+    const clMetas = meta.map(toCLMap);
+    const runtimeArgs = RuntimeArgs.fromMap({
+      recipient: recipient,
+      token_metas: CLValueBuilder.list(clMetas),
+    });
+
+    const deployHash = await contractCall({
+      chainName: this.chainName,
+      contractHash: this.contractHash,
+      entryPoint: "mint_many",
+      paymentAmount,
+      nodeAddress: this.nodeAddress,
+      keys: keys,
+      runtimeArgs,
+    });
+
+    if (deployHash !== null) {
+      return deployHash;
+    } else {
+      throw Error('Invalid Deploy');
+    }
+  }
+
   public async burnOne(
     keys: Keys.AsymmetricKey, 
     owner: CLPublicKey,
@@ -149,7 +235,7 @@ class CEP47Client {
   ) {
     const runtimeArgs = RuntimeArgs.fromMap({
       owner,
-      tokenId: CLValueBuilder.string(tokenId),
+      token_id: CLValueBuilder.string(tokenId),
     });
 
     const deployHash = await contractCall({
@@ -254,12 +340,32 @@ const contractCall = async ({
   return deployHash;
 };
 
+const contractSimpleGetter = async (nodeAddress: string, contractHash: string, key: string[]) => {
+    const stateRootHash = await utils.getStateRootHash(nodeAddress);
+    const clValue = await utils.getContractData(
+      nodeAddress, stateRootHash, contractHash, key);
+
+    if (clValue && clValue.CLValue instanceof CLValue) {
+      return clValue.CLValue!
+    } else {
+      throw Error('Invalid stored value');
+    }
+};
+
 const toCLMap = (map: Map<string, string>) => {
-  let clMap = CLValueBuilder.map([CLTypeBuilder.string(), CLTypeBuilder.string()]);
+  const clMap = CLValueBuilder.map([CLTypeBuilder.string(), CLTypeBuilder.string()]);
   for (const [key, value] of Array.from(map.entries())) {
-    clMap.set(CLValueBuilder.string(value[0]), CLValueBuilder.string(value[1]))
+    clMap.set(CLValueBuilder.string(key), CLValueBuilder.string(value))
   }
   return clMap;
+}
+
+const fromCLMap = (map: Map<CLString, CLString>) => {
+  const jsMap = new Map();
+  for (const [key, value] of Array.from(map.entries())) {
+    jsMap.set(key.value(), value.value());
+  }
+  return jsMap;
 }
 
 export default CEP47Client;
