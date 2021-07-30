@@ -81,7 +81,7 @@ pub fn get_entrypoints(package_hash: Option<ContractPackageHash>) -> EntryPoints
             Parameter::new("token_meta", Meta::cl_type()),
         ],
         CLType::Unit,
-        if secure { Some("deployer") } else { None },
+        None,
     ));
     entry_points.add_entry_point(endpoint(
         "mint_many",
@@ -94,7 +94,7 @@ pub fn get_entrypoints(package_hash: Option<ContractPackageHash>) -> EntryPoints
             Parameter::new("token_metas", CLType::List(Box::new(Meta::cl_type()))),
         ],
         CLType::Unit,
-        if secure { Some("deployer") } else { None },
+        None,
     ));
     entry_points.add_entry_point(endpoint(
         "mint_copies",
@@ -108,7 +108,7 @@ pub fn get_entrypoints(package_hash: Option<ContractPackageHash>) -> EntryPoints
             Parameter::new("count", CLType::U32),
         ],
         CLType::Unit,
-        if secure { Some("deployer") } else { None },
+        None,
     ));
     entry_points.add_entry_point(endpoint(
         "update_token_metadata",
@@ -117,7 +117,7 @@ pub fn get_entrypoints(package_hash: Option<ContractPackageHash>) -> EntryPoints
             Parameter::new("meta", Meta::cl_type()),
         ],
         CLType::Unit,
-        if secure { Some("deployer") } else { None },
+        None,
     ));
     entry_points.add_entry_point(endpoint(
         "burn_one",
@@ -126,7 +126,7 @@ pub fn get_entrypoints(package_hash: Option<ContractPackageHash>) -> EntryPoints
             Parameter::new("token_id", TokenId::cl_type()),
         ],
         CLType::Unit,
-        if secure { Some("deployer") } else { None },
+        None,
     ));
     entry_points.add_entry_point(endpoint(
         "burn_many",
@@ -135,7 +135,7 @@ pub fn get_entrypoints(package_hash: Option<ContractPackageHash>) -> EntryPoints
             Parameter::new("token_ids", CLType::List(Box::new(TokenId::cl_type()))),
         ],
         CLType::Unit,
-        if secure { Some("deployer") } else { None },
+        None,
     ));
     entry_points.add_entry_point(endpoint(
         "transfer_token",
