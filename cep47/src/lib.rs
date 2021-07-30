@@ -21,8 +21,7 @@ use casper_types::{
     EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, HashAddr, Key, Parameter, URef,
     U256,
 };
-pub use cep47_logic::Meta;
-use cep47_logic::{CEP47Contract, CEP47Storage, TokenId, WithStorage};
+pub use cep47_logic::{CEP47Contract, CEP47Storage, Meta, TokenId, WithStorage};
 
 use core::convert::TryInto;
 use std::{
@@ -36,7 +35,7 @@ mod data;
 mod entrypoints;
 
 pub use cep47_storage::CasperCEP47Storage;
-pub use entrypoints::get_entrypoints;
+pub use entrypoints::{endpoint, get_entrypoints};
 
 use data::{Balances, Metadata, OwnedTokens, Owners};
 
