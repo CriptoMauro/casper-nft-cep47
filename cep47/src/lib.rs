@@ -279,7 +279,7 @@ pub fn ret<T: CLTyped + ToBytes>(value: T) {
     runtime::ret(CLValue::from_t(value).unwrap_or_revert())
 }
 
-fn get_caller() -> Key {
+pub fn get_caller() -> Key {
     match runtime::get_call_stack().first().unwrap_or_revert() {
         // first or last?
         CallStackElement::Session { account_hash } => (*account_hash).into(),
